@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>C4 Defuse</title>
+
+<style>
+body {
+    background: #111;
+    text-align: center;
+    color: white;
+    font-family: monospace;
+}
+
+.bomb {
+    position: relative;
+    display: inline-block;
+    width: 90vw;
+    max-width: 600px;
+}
+
+.bomb img {
+    width: 100%;
+}
+
+/* дисплей */
+#display {
+    position: absolute;
+    top: 12%;
+    left: 25%;
+    width: 50%;
+    text-align: center;
+    font-size: 6vw;
+    color: red;
+}
+
+/* статус */
+#status {
+    position: absolute;
+    bottom: 15%;
+    right: 5%;
+    color: lime;
+    font-size: 3vw;
+}
+
+/* кнопки */
+.key {
+    position: absolute;
+    width: 10%;
+    height: 10%;
+    cursor: pointer;
+}
+
+/* цифры */
+.k1 { top: 33%; left: 38%; }
+.k2 { top: 33%; left: 50%; }
+.k3 { top: 33%; left: 62%; }
+
+.k4 { top: 45%; left: 38%; }
+.k5 { top: 45%; left: 50%; }
+.k6 { top: 45%; left: 62%; }
+
+.k7 { top: 57%; left: 38%; }
+.k8 { top: 57%; left: 50%; }
+.k9 { top: 57%; left: 62%; }
+
+.k0 { top: 69%; left: 50%; }
+
+.kstar { top: 69%; left: 38%; }
+.khash { top: 69%; left: 62%; }
+
+/* кнопки справа */
+.start { top: 40%; right: 5%; width: 15%; height: 8%; }
+.return { top: 28%; right: 5%; width: 15%; height: 8%; }
+
+/* кнопка подтверждения */
+.submitBtn {
+    margin-top: 15px;
+    padding: 10px 20px;
+    font-size: 18px;
+    cursor: pointer;
+}
+
+.settings {
+    margin-top: 15px;
+}
+</style>
+</head>
+
+<body>
+
+<h2>💣 C4 Defuse</h2>
+
+<div class="bomb">
+    <img src="img/bomb.png">
+
+    <div id="display">--------</div>
+    <div id="status">WAITING</div>
+
+    <!-- цифры -->
+    <div class="key k1" onclick="press(1)"></div>
+    <div class="key k2" onclick="press(2)"></div>
+    <div class="key k3" onclick="press(3)"></div>
+
+    <div class="key k4" onclick="press(4)"></div>
+    <div class="key k5" onclick="press(5)"></div>
+    <div class="key k6" onclick="press(6)"></div>
+
+    <div class="key k7" onclick="press(7)"></div>
+    <div class="key k8" onclick="press(8)"></div>
+    <div class="key k9" onclick="press(9)"></div>
+
+    <div class="key k0" onclick="press(0)"></div>
+
+    <!-- очистка -->
+    <div class="key kstar" onclick="clearInput()"></div>
+
+    <!-- старые кнопки -->
+    <div class="key start" onclick="startGame()"></div>
+    <div class="key return" onclick="resetGame()"></div>
+</div>
+
+<br>
+
+<button class="submitBtn" onclick="submitCode()">ПОДТВЕРДИТЬ</button>
+
+<div class="settings">
+    <label>Время запоминания (1–10 сек): </label>
+    <input id="time" type="number" min="1" max="10" value="3">
+</div>
+
+<script>
+let code = "";
+let input = "";
+let active = false;
+let visible = false;
+
+// звук с защитой
+function playSound(src) {
+    let audio = new Audio(src);
+    audio.play().catch(() => {
+        console.log("Звук не воспроизвёлся");
+    });
+}
+
+// генерация 8 цифр
+function generateCode() {
+    code = "";
+    for (let i = 0; i < 8; i++) {
+        code += Math.floor(Math.random() * 10);
+    }
+}
+
+// старт
+function startGame() {
+    generateCode();
+    input = "";
+    active = true;
+    visible = true;
+
+    document.getElementById("status").textContent = "MEMORIZE";
+    document.getElementById("display").textContent = code;
+
+    let time = parseInt(document.getElementById("time").value) || 3;
+    time = Math.max(1, Math.min(10, time));
+
+    setTimeout(() => {
+        document.getElementById("display").textContent = "--------";
+        document.getElementById("status").textContent = "ENTER CODE";
+        visible = false;
+
+        playSound("sounds/plant.mp3");
+    }, time * 1000);
+}
+
+// ввод
+function press(num) {
+    if (!active || visible) return;
+
+    if (input.length < 8) {
+        input += num;
+        document.getElementById("display").textContent = input;
+    }
+}
+
+// очистка
+function clearInput() {
+    if (!active || visible) return;
+
+    input = "";
+    document.getElementById("display").textContent = "--------";
+}
+
+// проверка
+function submitCode() {
+    if (!active || visible) return;
+
+    if (input === code) {
+        success();
+    } else {
+        fail();
+    }
+}
+
+// сброс
+function resetGame() {
+    input = "";
+    active = false;
+    document.getElementById("display").textContent = "--------";
+    document.getElementById("status").textContent = "WAITING";
+}
+
+// успех
+function success() {
+    playSound("sounds/success.mp3");
+    document.getElementById("status").textContent = "DEFUSED";
+    active = false;
+}
+
+// провал
+function fail() {
+    playSound("sounds/fail.mp3");
+    document.getElementById("status").textContent = "BOOM";
+    active = false;
+}
+</script>
+
+</body>
+</html>
